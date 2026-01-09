@@ -1,5 +1,10 @@
 # MCP Tool Gateway
 
+[![CI](https://github.com/code-wheel/mcp-tool-gateway/actions/workflows/ci.yml/badge.svg)](https://github.com/code-wheel/mcp-tool-gateway/actions/workflows/ci.yml)
+[![codecov](https://codecov.io/gh/code-wheel/mcp-tool-gateway/graph/badge.svg)](https://codecov.io/gh/code-wheel/mcp-tool-gateway)
+[![Latest Stable Version](https://poser.pugx.org/code-wheel/mcp-tool-gateway/v)](https://packagist.org/packages/code-wheel/mcp-tool-gateway)
+[![License](https://poser.pugx.org/code-wheel/mcp-tool-gateway/license)](https://packagist.org/packages/code-wheel/mcp-tool-gateway)
+
 A framework-agnostic tool gateway for the Model Context Protocol (MCP). Instead of registering hundreds of tools with an MCP client, register just 3 gateway tools that allow dynamic discovery and execution.
 
 ## The Problem
