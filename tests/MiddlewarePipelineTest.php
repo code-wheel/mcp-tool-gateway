@@ -215,10 +215,16 @@ final class MiddlewarePipelineTest extends TestCase
         ?callable $after = null,
     ): MiddlewareInterface {
         return new class ($before, $after) implements MiddlewareInterface {
-            public function __construct(
-                private ?callable $before,
-                private ?callable $after,
-            ) {}
+            /** @var callable|null */
+            private $before;
+            /** @var callable|null */
+            private $after;
+
+            public function __construct(?callable $before, ?callable $after)
+            {
+                $this->before = $before;
+                $this->after = $after;
+            }
 
             public function process(
                 string $toolName,

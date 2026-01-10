@@ -115,10 +115,9 @@ jobs:
 
           // Adapter to wrap SchemaValidator
           class SchemaValidatorAdapter implements ValidatorInterface {
-              private SchemaValidator \$validator;
-              public function __construct() { \$this->validator = new SchemaValidator(); }
               public function validate(array \$data, array \$schema): ValidationResultInterface {
-                  \$result = \$this->validator->validate(\$data, \$schema);
+                  \$validator = new SchemaValidator(\$schema);
+                  \$result = \$validator->validate(\$data);
                   return new class(\$result) implements ValidationResultInterface {
                       public function __construct(private ValidationResult \$result) {}
                       public function isValid(): bool { return \$this->result->isValid(); }
