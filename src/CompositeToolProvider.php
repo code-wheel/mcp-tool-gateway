@@ -45,10 +45,13 @@ final class CompositeToolProvider implements ToolProviderInterface
         $this->providers = [];
         $this->prefixed = $prefixed;
 
+        $autoKeyCounter = 0;
         foreach ($providers as $key => $provider) {
             if (is_int($key)) {
-                // Auto-generate key from class name
-                $key = $this->generateKey($provider);
+                // Auto-generate unique key
+                $baseKey = $this->generateKey($provider);
+                $key = $autoKeyCounter > 0 ? "{$baseKey}_{$autoKeyCounter}" : $baseKey;
+                $autoKeyCounter++;
             }
             $this->providers[(string) $key] = $provider;
         }
