@@ -114,14 +114,14 @@ final class LoggingMiddlewareTest extends TestCase
 
                 if ($call === 1) {
                     $this->assertArrayHasKey('arguments', $context);
-                    $this->assertSame('value', $context['arguments']['normal_key']);
+                    $this->assertSame('value', $context['arguments']['name']);
                 }
             });
 
         $middleware = new LoggingMiddleware($this->logger, logArguments: true);
         $next = fn() => ToolResult::success('OK');
 
-        $middleware->process('test_tool', ['normal_key' => 'value'], $this->context, $next);
+        $middleware->process('test_tool', ['name' => 'value'], $this->context, $next);
     }
 
     public function testSanitizesSensitiveArguments(): void

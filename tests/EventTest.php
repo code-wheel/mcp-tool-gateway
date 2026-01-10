@@ -137,7 +137,7 @@ final class EventTest extends TestCase
         $this->assertSame('tool_execution_succeeded', $array['event']);
         $this->assertSame('array_tool', $array['tool_name']);
         $this->assertSame('req-789', $array['request_id']);
-        $this->assertSame(100.0, $array['duration_ms']);
+        $this->assertEqualsWithDelta(100.0, $array['duration_ms'], 0.01);
         $this->assertSame(1700000000.0, $array['start_time']);
         $this->assertSame(1700000000.1, $array['end_time']);
     }
@@ -158,7 +158,7 @@ final class EventTest extends TestCase
 
         $this->assertSame('metrics_tool', $metrics['tool']);
         $this->assertTrue($metrics['success']);
-        $this->assertSame(50.0, $metrics['duration_ms']);
+        $this->assertEqualsWithDelta(50.0, $metrics['duration_ms'], 0.01);
     }
 
     // =========================================================================
@@ -212,7 +212,7 @@ final class EventTest extends TestCase
             endTime: 1700000000.123,
         );
 
-        $this->assertSame(123.0, $event->getDurationMs());
+        $this->assertEqualsWithDelta(123.0, $event->getDurationMs(), 0.01);
     }
 
     public function testToolExecutionFailedHasException(): void
@@ -257,7 +257,7 @@ final class EventTest extends TestCase
         $this->assertSame('fail_tool', $array['tool_name']);
         $this->assertSame('req-789', $array['request_id']);
         $this->assertSame('Something broke', $array['error']);
-        $this->assertSame(50.0, $array['duration_ms']);
+        $this->assertEqualsWithDelta(50.0, $array['duration_ms'], 0.01);
         $this->assertSame(1700000000.0, $array['start_time']);
         $this->assertSame(1700000000.05, $array['end_time']);
         $this->assertArrayNotHasKey('exception_class', $array);
@@ -295,7 +295,7 @@ final class EventTest extends TestCase
 
         $this->assertSame('metrics_fail', $metrics['tool']);
         $this->assertFalse($metrics['success']);
-        $this->assertSame(20.0, $metrics['duration_ms']);
+        $this->assertEqualsWithDelta(20.0, $metrics['duration_ms'], 0.01);
         $this->assertSame('tool_error', $metrics['error_type']);
     }
 

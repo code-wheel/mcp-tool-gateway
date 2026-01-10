@@ -198,9 +198,11 @@ final class ValidatingMiddlewareTest extends TestCase
         $result = $pipeline->execute('create_user', ['name' => 'John', 'email' => 'j@e.com']);
 
         $this->assertFalse($result->success);
-        // Message should not have ": " prefix when path is empty
+        // Message should not have empty path prefix (like ": Object is invalid" at start of error)
         $this->assertStringContainsString('Object is invalid', $result->message);
-        $this->assertStringNotContainsString(': Object is invalid', $result->message);
+        // When path is empty, message should be "Validation failed: Object is invalid"
+        // not "Validation failed: : Object is invalid" (no empty path prefix)
+        $this->assertStringNotContainsString(': : ', $result->message);
     }
 
     public function testStrictModeNotAppliedToNonObjectSchema(): void
