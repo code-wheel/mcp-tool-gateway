@@ -21,7 +21,7 @@ final class LoggingMiddlewareTest extends TestCase
     protected function setUp(): void
     {
         $this->logger = $this->createMock(LoggerInterface::class);
-        $this->context = ExecutionContext::create(requestId: 'req-123');
+        $this->context = new ExecutionContext(requestId: 'req-123');
     }
 
     public function testLogsSuccessfulExecution(): void
@@ -242,7 +242,7 @@ final class LoggingMiddlewareTest extends TestCase
             });
 
         $middleware = new LoggingMiddleware($this->logger);
-        $context = ExecutionContext::create(); // No requestId
+        $context = new ExecutionContext(); // No requestId
         $next = fn() => ToolResult::success('OK');
 
         $middleware->process('test_tool', [], $context, $next);

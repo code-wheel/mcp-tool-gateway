@@ -83,7 +83,8 @@ final class CachingToolProviderTest extends TestCase
                 'mcp_tool_mcp_tools_discovery',
                 $this->isType('array'),
                 3600
-            );
+            )
+            ->willReturn(true);
 
         $provider = new CachingToolProvider($this->inner, $this->cache);
         $tools = $provider->getTools();
@@ -96,7 +97,7 @@ final class CachingToolProviderTest extends TestCase
     public function testGetTool(): void
     {
         $this->cache->method('get')->willReturn(null);
-        $this->cache->method('set');
+        $this->cache->method('set')->willReturn(true);
 
         $provider = new CachingToolProvider($this->inner, $this->cache);
 
@@ -128,7 +129,7 @@ final class CachingToolProviderTest extends TestCase
                 return null;
             });
 
-        $this->cache->method('set');
+        $this->cache->method('set')->willReturn(true);
 
         $provider = new CachingToolProvider($this->inner, $this->cache);
         $result = $provider->execute('read_tool', ['foo' => 'bar']);
@@ -145,6 +146,7 @@ final class CachingToolProviderTest extends TestCase
         $this->cache->method('set')
             ->willReturnCallback(function (string $key, $value, $ttl) use (&$setCalls) {
                 $setCalls[] = ['key' => $key, 'value' => $value, 'ttl' => $ttl];
+                return true;
             });
 
         $provider = new CachingToolProvider($this->inner, $this->cache, resultTtl: 600);
@@ -166,7 +168,7 @@ final class CachingToolProviderTest extends TestCase
                 return null;
             });
 
-        $this->cache->method('set');
+        $this->cache->method('set')->willReturn(true);
 
         $provider = new CachingToolProvider($this->inner, $this->cache);
         $result = $provider->execute('write_tool', ['data' => 'value']);
@@ -187,6 +189,7 @@ final class CachingToolProviderTest extends TestCase
         $this->cache->method('set')
             ->willReturnCallback(function (string $key) use (&$setCalls) {
                 $setCalls[] = $key;
+                return true;
             });
 
         $provider = new CachingToolProvider($this->inner, $this->cache);
@@ -226,7 +229,7 @@ final class CachingToolProviderTest extends TestCase
             ->with('custom_mcp_tools_discovery')
             ->willReturn(null);
 
-        $this->cache->method('set');
+        $this->cache->method('set')->willReturn(true);
 
         $provider = new CachingToolProvider(
             $this->inner,
@@ -245,6 +248,7 @@ final class CachingToolProviderTest extends TestCase
         $this->cache->method('set')
             ->willReturnCallback(function (string $key, $value, $ttl) use (&$setCalls) {
                 $setCalls[$key] = $ttl;
+                return true;
             });
 
         $provider = new CachingToolProvider(
@@ -263,7 +267,7 @@ final class CachingToolProviderTest extends TestCase
     public function testExecuteWithContext(): void
     {
         $this->cache->method('get')->willReturn(null);
-        $this->cache->method('set');
+        $this->cache->method('set')->willReturn(true);
 
         $provider = new CachingToolProvider($this->inner, $this->cache);
         $context = ExecutionContext::create(userId: 'user-123');

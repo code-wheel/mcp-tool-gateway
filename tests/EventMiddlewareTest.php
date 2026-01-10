@@ -24,7 +24,7 @@ final class EventMiddlewareTest extends TestCase
     protected function setUp(): void
     {
         $this->dispatcher = $this->createMock(EventDispatcherInterface::class);
-        $this->context = ExecutionContext::create(requestId: 'req-456', userId: 'user-1');
+        $this->context = new ExecutionContext(requestId: 'req-456', userId: 'user-1');
     }
 
     public function testDispatchesStartedAndSucceededEvents(): void

@@ -22,7 +22,7 @@ final class EventTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->context = ExecutionContext::create(requestId: 'req-789', userId: 'user-abc');
+        $this->context = new ExecutionContext(requestId: 'req-789', userId: 'user-abc');
     }
 
     // =========================================================================

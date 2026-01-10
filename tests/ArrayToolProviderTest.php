@@ -250,7 +250,7 @@ class ArrayToolProviderTest extends TestCase
             $this->fail('Expected ToolExecutionException');
         } catch (ToolExecutionException $e) {
             $this->assertSame('Custom error', $e->getMessage());
-            $this->assertSame('exec-exception', $e->getToolName());
+            $this->assertSame('exec-exception', $e->toolName);
         }
     }
 }
