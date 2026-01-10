@@ -24,7 +24,8 @@
     "suggest": {
         "psr/log": "Required for LoggingMiddleware",
         "psr/simple-cache": "Required for CachingToolProvider",
-        "psr/event-dispatcher": "Required for EventMiddleware"
+        "psr/event-dispatcher": "Required for EventMiddleware",
+        "code-wheel/mcp-schema-builder": "Recommended for ValidatingMiddleware"
     },
     "autoload": {
         "psr-4": {
