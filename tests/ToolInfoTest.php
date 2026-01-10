@@ -129,4 +129,57 @@ class ToolInfoTest extends TestCase
 
         $this->assertSame(['type' => 'object'], $tool->inputSchema);
     }
+
+    public function testFromArrayWithMinimalData(): void
+    {
+        // Test all the default fallbacks
+        $tool = ToolInfo::fromArray([]);
+
+        $this->assertSame('', $tool->name);
+        $this->assertSame('', $tool->label); // Falls back to name, which is also empty
+        $this->assertSame('', $tool->description);
+        $this->assertSame([], $tool->inputSchema);
+        $this->assertSame([], $tool->annotations);
+        $this->assertNull($tool->provider);
+        $this->assertSame([], $tool->metadata);
+    }
+
+    public function testFromArrayLabelFallsBackToName(): void
+    {
+        $tool = ToolInfo::fromArray([
+            'name' => 'my_tool',
+            // No label provided
+        ]);
+
+        $this->assertSame('my_tool', $tool->label);
+    }
+
+    public function testToDiscoverySummaryWithNoHints(): void
+    {
+        $tool = new ToolInfo(
+            name: 'simple',
+            label: 'Simple',
+            description: 'A simple tool',
+            // No annotations
+        );
+
+        $summary = $tool->toDiscoverySummary();
+
+        $this->assertSame([], $summary['hints']);
+        $this->assertNull($summary['provider']);
+    }
+
+    public function testConstructorDefaults(): void
+    {
+        $tool = new ToolInfo(
+            name: 'minimal',
+            label: 'Minimal',
+            description: 'Minimal tool',
+        );
+
+        $this->assertSame([], $tool->inputSchema);
+        $this->assertSame([], $tool->annotations);
+        $this->assertNull($tool->provider);
+        $this->assertSame([], $tool->metadata);
+    }
 }

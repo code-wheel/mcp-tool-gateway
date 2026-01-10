@@ -183,6 +183,66 @@ final class ValidatingMiddlewareTest extends TestCase
         $this->assertSame('minLength', $validationErrors[0]['code']);
     }
 
+    public function testValidationErrorWithEmptyPath(): void
+    {
+        // Some validators return empty path for root-level errors
+        $errors = [
+            $this->createMockError('', 'Object is invalid', 'type'),
+        ];
+        $validator = $this->createMockValidator(false, $errors);
+        $middleware = new ValidatingMiddleware($this->provider, $validator);
+
+        $pipeline = new MiddlewarePipeline($this->provider);
+        $pipeline->add($middleware);
+
+        $result = $pipeline->execute('create_user', ['name' => 'John', 'email' => 'j@e.com']);
+
+        $this->assertFalse($result->success);
+        // Message should not have ": " prefix when path is empty
+        $this->assertStringContainsString('Object is invalid', $result->message);
+        $this->assertStringNotContainsString(': Object is invalid', $result->message);
+    }
+
+    public function testStrictModeNotAppliedToNonObjectSchema(): void
+    {
+        // Create a tool with non-object schema
+        $this->provider = new ArrayToolProvider([
+            'string_tool' => new ToolInfo(
+                name: 'string_tool',
+                label: 'String Tool',
+                description: 'Takes a string',
+                inputSchema: [
+                    'type' => 'string',
+                ],
+            ),
+        ]);
+        $this->provider->setHandler('string_tool', fn() => ToolResult::success('Done'));
+
+        $capturedSchema = null;
+        $validator = new class ($capturedSchema) implements ValidatorInterface {
+            public function __construct(private ?array &$captured) {}
+
+            public function validate(array $data, array $schema): ValidationResultInterface
+            {
+                $this->captured = $schema;
+                return new class implements ValidationResultInterface {
+                    public function isValid(): bool { return true; }
+                    public function getErrors(): array { return []; }
+                };
+            }
+        };
+
+        $middleware = new ValidatingMiddleware($this->provider, $validator, strictMode: true);
+        $pipeline = new MiddlewarePipeline($this->provider);
+        $pipeline->add($middleware);
+
+        $pipeline->execute('string_tool', []);
+
+        $this->assertNotNull($capturedSchema);
+        // additionalProperties should NOT be added for non-object types
+        $this->assertArrayNotHasKey('additionalProperties', $capturedSchema);
+    }
+
     /**
      * Creates a mock validator that returns the specified result.
      */

@@ -206,6 +206,63 @@ final class MiddlewarePipelineTest extends TestCase
         $this->assertSame(0, $pipeline->count());
     }
 
+    public function testExecuteCreatesDefaultContextWhenNoneProvided(): void
+    {
+        $capturedContext = null;
+
+        $middleware = new class ($capturedContext) implements MiddlewareInterface {
+            public function __construct(private ?ExecutionContext &$captured) {}
+
+            public function process(
+                string $toolName,
+                array $arguments,
+                ExecutionContext $context,
+                callable $next,
+            ): ToolResult {
+                $this->captured = $context;
+                return $next($toolName, $arguments, $context);
+            }
+        };
+
+        $pipeline = new MiddlewarePipeline($this->provider);
+        $pipeline->add($middleware);
+
+        // Execute without providing context
+        $result = $pipeline->execute('test_tool', []);
+
+        $this->assertTrue($result->success);
+        $this->assertNotNull($capturedContext);
+        $this->assertInstanceOf(ExecutionContext::class, $capturedContext);
+    }
+
+    public function testAddReturnsFluentInterface(): void
+    {
+        $pipeline = new MiddlewarePipeline($this->provider);
+
+        $result = $pipeline->add($this->createMiddleware());
+
+        $this->assertSame($pipeline, $result);
+    }
+
+    public function testAddManyReturnsFluentInterface(): void
+    {
+        $pipeline = new MiddlewarePipeline($this->provider);
+
+        $result = $pipeline->addMany([$this->createMiddleware()]);
+
+        $this->assertSame($pipeline, $result);
+    }
+
+    public function testClearReturnsFluentInterface(): void
+    {
+        $pipeline = new MiddlewarePipeline($this->provider);
+        $pipeline->add($this->createMiddleware());
+
+        $result = $pipeline->clear();
+
+        $this->assertSame($pipeline, $result);
+    }
+
     /**
      * Creates a simple middleware for testing.
      */

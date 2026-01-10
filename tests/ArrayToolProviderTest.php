@@ -150,4 +150,107 @@ class ArrayToolProviderTest extends TestCase
         $this->assertSame($provider, $result);
         $this->assertCount(2, $provider->getTools());
     }
+
+    public function testConstructorWithInitialTools(): void
+    {
+        $tool1 = new ToolInfo('tool-1', 'Tool 1', 'First tool');
+        $tool2 = new ToolInfo('tool-2', 'Tool 2', 'Second tool');
+
+        $provider = new ArrayToolProvider([
+            'tool-1' => $tool1,
+            'tool-2' => $tool2,
+        ]);
+
+        $tools = $provider->getTools();
+        $this->assertCount(2, $tools);
+        $this->assertSame($tool1, $tools['tool-1']);
+        $this->assertSame($tool2, $tools['tool-2']);
+    }
+
+    public function testSetHandler(): void
+    {
+        $tool = new ToolInfo('delayed-tool', 'Delayed Tool', 'Handler set later');
+        $provider = new ArrayToolProvider(['delayed-tool' => $tool]);
+
+        $result = $provider->setHandler('delayed-tool', fn(array $args) => ToolResult::success('Delayed: ' . ($args['msg'] ?? '')));
+
+        $this->assertSame($provider, $result);
+
+        $execResult = $provider->execute('delayed-tool', ['msg' => 'hello']);
+        $this->assertTrue($execResult->success);
+        $this->assertSame('Delayed: hello', $execResult->message);
+    }
+
+    public function testExecuteWithArbitraryReturn(): void
+    {
+        $provider = new ArrayToolProvider();
+        $tool = new ToolInfo('object-tool', 'Object Tool', 'Returns arbitrary value');
+
+        // Handler returns an integer
+        $provider->register($tool, fn() => 42);
+
+        $result = $provider->execute('object-tool', []);
+
+        $this->assertTrue($result->success);
+        $this->assertSame('OK', $result->message);
+        $this->assertSame(['result' => 42], $result->data);
+    }
+
+    public function testExecuteWithFailedArrayReturn(): void
+    {
+        $provider = new ArrayToolProvider();
+        $tool = new ToolInfo('fail-array', 'Fail Array', 'Returns failure array');
+
+        $provider->register($tool, fn() => ['success' => false, 'message' => 'Failed operation', 'reason' => 'test']);
+
+        $result = $provider->execute('fail-array', []);
+
+        $this->assertFalse($result->success);
+        $this->assertSame('Failed operation', $result->message);
+        $this->assertSame(['reason' => 'test'], $result->data);
+    }
+
+    public function testExecuteWithArraySuccessWithoutMessage(): void
+    {
+        $provider = new ArrayToolProvider();
+        $tool = new ToolInfo('array-no-msg', 'Array No Msg', 'Array without message');
+
+        $provider->register($tool, fn() => ['success' => true, 'data' => 'value']);
+
+        $result = $provider->execute('array-no-msg', []);
+
+        $this->assertTrue($result->success);
+        $this->assertSame('OK', $result->message);
+    }
+
+    public function testExecuteWithArrayFailureWithoutMessage(): void
+    {
+        $provider = new ArrayToolProvider();
+        $tool = new ToolInfo('array-fail-no-msg', 'Array Fail No Msg', 'Failure without message');
+
+        $provider->register($tool, fn() => ['success' => false]);
+
+        $result = $provider->execute('array-fail-no-msg', []);
+
+        $this->assertFalse($result->success);
+        $this->assertSame('Failed', $result->message);
+    }
+
+    public function testExecutePreservesToolExecutionException(): void
+    {
+        $provider = new ArrayToolProvider();
+        $tool = new ToolInfo('exec-exception', 'Exec Exception', 'Throws ToolExecutionException');
+
+        $provider->register($tool, function (): never {
+            throw new ToolExecutionException('exec-exception', 'Custom error', ['detail' => 'info']);
+        });
+
+        try {
+            $provider->execute('exec-exception', []);
+            $this->fail('Expected ToolExecutionException');
+        } catch (ToolExecutionException $e) {
+            $this->assertSame('Custom error', $e->getMessage());
+            $this->assertSame('exec-exception', $e->getToolName());
+        }
+    }
 }
