@@ -25,6 +25,28 @@ class ArrayToolProvider implements ToolProviderInterface
     private array $handlers = [];
 
     /**
+     * @param array<string, ToolInfo> $tools Initial tools (handlers can be set later with setHandler).
+     */
+    public function __construct(array $tools = [])
+    {
+        foreach ($tools as $name => $tool) {
+            $this->tools[$name] = $tool;
+        }
+    }
+
+    /**
+     * Sets a handler for a tool.
+     *
+     * @param string $toolName The tool name.
+     * @param callable $handler Function that receives (array $arguments, ?ExecutionContext $context) and returns ToolResult.
+     */
+    public function setHandler(string $toolName, callable $handler): self
+    {
+        $this->handlers[$toolName] = $handler;
+        return $this;
+    }
+
+    /**
      * Registers a tool with its handler.
      *
      * @param ToolInfo $tool The tool metadata.
