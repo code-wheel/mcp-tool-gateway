@@ -14,7 +14,6 @@ use PHPUnit\Framework\TestCase;
 
 /**
  * @covers \CodeWheel\McpToolGateway\Middleware\MiddlewarePipeline
- * @covers \CodeWheel\McpToolGateway\Middleware\MiddlewareInterface
  */
 final class MiddlewarePipelineTest extends TestCase
 {
