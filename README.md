@@ -384,3 +384,4 @@ public function execute(array $args): ToolResult
 ## License
 
 MIT License - see [LICENSE](LICENSE) file.
+
