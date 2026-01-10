@@ -10,6 +10,9 @@ use CodeWheel\McpToolGateway\Middleware\MiddlewarePipeline;
 use CodeWheel\McpToolGateway\Middleware\ValidatingMiddleware;
 use CodeWheel\McpToolGateway\ToolInfo;
 use CodeWheel\McpToolGateway\ToolResult;
+use CodeWheel\McpToolGateway\Validation\ValidationErrorInterface;
+use CodeWheel\McpToolGateway\Validation\ValidationResultInterface;
+use CodeWheel\McpToolGateway\Validation\ValidatorInterface;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -67,8 +70,8 @@ final class ValidatingMiddlewareTest extends TestCase
     public function testInvalidInputReturnsError(): void
     {
         $errors = [
-            (object)['path' => 'email', 'message' => 'Invalid email format', 'code' => 'format'],
-            (object)['path' => 'age', 'message' => 'Must be >= 0', 'code' => 'minimum'],
+            $this->createMockError('email', 'Invalid email format', 'format'),
+            $this->createMockError('age', 'Must be >= 0', 'minimum'),
         ];
         $validator = $this->createMockValidator(false, $errors);
         $middleware = new ValidatingMiddleware($this->provider, $validator);
@@ -92,7 +95,7 @@ final class ValidatingMiddlewareTest extends TestCase
     public function testMissingRequiredFieldReturnsError(): void
     {
         $errors = [
-            (object)['path' => 'email', 'message' => 'Required field missing', 'code' => 'required'],
+            $this->createMockError('email', 'Required field missing', 'required'),
         ];
         $validator = $this->createMockValidator(false, $errors);
         $middleware = new ValidatingMiddleware($this->provider, $validator);
@@ -137,13 +140,13 @@ final class ValidatingMiddlewareTest extends TestCase
     {
         // In strict mode, the schema should have additionalProperties: false
         $capturedSchema = null;
-        $validator = new class ($capturedSchema) {
+        $validator = new class ($capturedSchema) implements ValidatorInterface {
             public function __construct(private ?array &$captured) {}
 
-            public function validate(array $data, array $schema): object
+            public function validate(array $data, array $schema): ValidationResultInterface
             {
                 $this->captured = $schema;
-                return new class {
+                return new class implements ValidationResultInterface {
                     public function isValid(): bool { return true; }
                     public function getErrors(): array { return []; }
                 };
@@ -160,18 +163,10 @@ final class ValidatingMiddlewareTest extends TestCase
         $this->assertFalse($capturedSchema['additionalProperties']);
     }
 
-    public function testConstructorRejectsInvalidValidator(): void
-    {
-        $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessage('validate');
-
-        new ValidatingMiddleware($this->provider, new \stdClass());
-    }
-
     public function testValidationErrorsIncludeAllDetails(): void
     {
         $errors = [
-            (object)['path' => 'name', 'message' => 'Too short', 'code' => 'minLength'],
+            $this->createMockError('name', 'Too short', 'minLength'),
         ];
         $validator = $this->createMockValidator(false, $errors);
         $middleware = new ValidatingMiddleware($this->provider, $validator);
@@ -191,20 +186,20 @@ final class ValidatingMiddlewareTest extends TestCase
     /**
      * Creates a mock validator that returns the specified result.
      */
-    private function createMockValidator(bool $isValid, array $errors): object
+    private function createMockValidator(bool $isValid, array $errors): ValidatorInterface
     {
-        return new class ($isValid, $errors) {
+        return new class ($isValid, $errors) implements ValidatorInterface {
             public function __construct(
                 private bool $isValid,
                 private array $errors,
             ) {}
 
-            public function validate(array $data, array $schema): object
+            public function validate(array $data, array $schema): ValidationResultInterface
             {
                 $isValid = $this->isValid;
                 $errors = $this->errors;
 
-                return new class ($isValid, $errors) {
+                return new class ($isValid, $errors) implements ValidationResultInterface {
                     public function __construct(
                         private bool $valid,
                         private array $errs,
@@ -221,6 +216,24 @@ final class ValidatingMiddlewareTest extends TestCase
                     }
                 };
             }
+        };
+    }
+
+    /**
+     * Creates a mock validation error.
+     */
+    private function createMockError(string $path, string $message, string $code): ValidationErrorInterface
+    {
+        return new class ($path, $message, $code) implements ValidationErrorInterface {
+            public function __construct(
+                private string $path,
+                private string $message,
+                private string $code,
+            ) {}
+
+            public function getPath(): string { return $this->path; }
+            public function getMessage(): string { return $this->message; }
+            public function getCode(): string { return $this->code; }
         };
     }
 }

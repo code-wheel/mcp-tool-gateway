@@ -31,6 +31,7 @@ final class ExecutionContext
     /**
      * Creates a context with a generated request ID.
      *
+     * @param list<string> $scopes
      * @param array<string, mixed> $attributes
      */
     public static function create(

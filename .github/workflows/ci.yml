@@ -106,7 +106,33 @@ jobs:
           use CodeWheel\McpToolGateway\ToolResult;
           use CodeWheel\McpToolGateway\Middleware\MiddlewarePipeline;
           use CodeWheel\McpToolGateway\Middleware\ValidatingMiddleware;
+          use CodeWheel\McpToolGateway\Validation\ValidatorInterface;
+          use CodeWheel\McpToolGateway\Validation\ValidationResultInterface;
+          use CodeWheel\McpToolGateway\Validation\ValidationErrorInterface;
           use CodeWheel\McpSchemaBuilder\SchemaValidator;
+          use CodeWheel\McpSchemaBuilder\ValidationResult;
+          use CodeWheel\McpSchemaBuilder\ValidationError;
+
+          // Adapter to wrap SchemaValidator
+          class SchemaValidatorAdapter implements ValidatorInterface {
+              private SchemaValidator \$validator;
+              public function __construct() { \$this->validator = new SchemaValidator(); }
+              public function validate(array \$data, array \$schema): ValidationResultInterface {
+                  \$result = \$this->validator->validate(\$data, \$schema);
+                  return new class(\$result) implements ValidationResultInterface {
+                      public function __construct(private ValidationResult \$result) {}
+                      public function isValid(): bool { return \$this->result->isValid(); }
+                      public function getErrors(): array {
+                          return array_map(fn(\$e) => new class(\$e) implements ValidationErrorInterface {
+                              public function __construct(private ValidationError \$error) {}
+                              public function getPath(): string { return \$this->error->path; }
+                              public function getMessage(): string { return \$this->error->message; }
+                              public function getCode(): string { return \$this->error->constraint; }
+                          }, \$this->result->getErrors());
+                      }
+                  };
+              }
+          }
 
           \$provider = new ArrayToolProvider([
               'test' => new ToolInfo(
@@ -123,7 +149,7 @@ jobs:
 
           \$provider->setHandler('test', fn(\$args) => ToolResult::success('OK'));
 
-          \$validator = new SchemaValidator();
+          \$validator = new SchemaValidatorAdapter();
           \$middleware = new ValidatingMiddleware(\$provider, \$validator);
 
           \$pipeline = new MiddlewarePipeline(\$provider);

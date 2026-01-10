@@ -7,6 +7,7 @@ namespace CodeWheel\McpToolGateway\Middleware;
 use CodeWheel\McpToolGateway\ExecutionContext;
 use CodeWheel\McpToolGateway\ToolProviderInterface;
 use CodeWheel\McpToolGateway\ToolResult;
+use CodeWheel\McpToolGateway\Validation\ValidatorInterface;
 
 /**
  * Middleware that validates tool arguments against their JSON Schema.
@@ -29,21 +30,14 @@ final class ValidatingMiddleware implements MiddlewareInterface
 {
     /**
      * @param ToolProviderInterface $provider Provider to look up tool schemas.
-     * @param object $validator Validator with validate(array $data, array $schema) method.
+     * @param ValidatorInterface $validator Validator implementing ValidatorInterface.
      * @param bool $strictMode If true, reject unknown properties. Default false.
      */
     public function __construct(
         private readonly ToolProviderInterface $provider,
-        private readonly object $validator,
+        private readonly ValidatorInterface $validator,
         private readonly bool $strictMode = false,
-    ) {
-        // Validate that the validator has the required method
-        if (!method_exists($this->validator, 'validate')) {
-            throw new \InvalidArgumentException(
-                'Validator must have a validate(array $data, array $schema): ValidationResult method'
-            );
-        }
-    }
+    ) {}
 
     public function process(
         string $toolName,
@@ -70,7 +64,6 @@ final class ValidatingMiddleware implements MiddlewareInterface
             $schema['additionalProperties'] = false;
         }
 
-        /** @var object{isValid: callable, getErrors: callable} $result */
         $result = $this->validator->validate($arguments, $schema);
 
         if (!$result->isValid()) {
@@ -78,9 +71,9 @@ final class ValidatingMiddleware implements MiddlewareInterface
             $errorMessages = [];
 
             foreach ($errors as $error) {
-                $path = $error->path ?? '';
-                $message = $error->message ?? 'Validation failed';
-                $errorMessages[] = $path ? "{$path}: {$message}" : $message;
+                $path = $error->getPath();
+                $message = $error->getMessage();
+                $errorMessages[] = $path !== '' ? "{$path}: {$message}" : $message;
             }
 
             return ToolResult::error(
@@ -88,9 +81,9 @@ final class ValidatingMiddleware implements MiddlewareInterface
                 [
                     'validation_errors' => array_map(
                         fn($e) => [
-                            'path' => $e->path ?? '',
-                            'message' => $e->message ?? '',
-                            'code' => $e->code ?? 'validation_error',
+                            'path' => $e->getPath(),
+                            'message' => $e->getMessage(),
+                            'code' => $e->getCode(),
                         ],
                         $errors
                     ),
