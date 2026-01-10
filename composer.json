@@ -1,46 +1,57 @@
 {
-    "name": "code-wheel/mcp-tool-gateway",
-    "description": "MCP Tool Gateway - Dynamic tool discovery, middleware pipeline, and caching for MCP servers",
-    "type": "library",
-    "license": "MIT",
-    "keywords": ["mcp", "model-context-protocol", "tools", "gateway", "discovery", "middleware"],
-    "authors": [
-        {
-            "name": "Code Wheel",
-            "email": "mowens3@gmail.com"
-        }
-    ],
-    "require": {
-        "php": ">=8.1",
-        "mcp/sdk": "^0.2"
-    },
-    "require-dev": {
-        "phpunit/phpunit": "^10.0 || ^11.0",
-        "phpstan/phpstan": "^1.10",
-        "psr/log": "^3.0",
-        "psr/simple-cache": "^3.0",
-        "psr/event-dispatcher": "^1.0"
-    },
-    "suggest": {
-        "psr/log": "Required for LoggingMiddleware",
-        "psr/simple-cache": "Required for CachingToolProvider",
-        "psr/event-dispatcher": "Required for EventMiddleware",
-        "code-wheel/mcp-schema-builder": "Recommended for ValidatingMiddleware"
-    },
-    "autoload": {
-        "psr-4": {
-            "CodeWheel\\McpToolGateway\\": "src/"
-        }
-    },
-    "autoload-dev": {
-        "psr-4": {
-            "CodeWheel\\McpToolGateway\\Tests\\": "tests/"
-        }
-    },
-    "scripts": {
-        "test": "phpunit",
-        "analyse": "phpstan analyse src --level=8"
-    },
-    "minimum-stability": "stable",
-    "prefer-stable": true
+  "name": "code-wheel/mcp-tool-gateway",
+  "description": "MCP Tool Gateway - Dynamic tool discovery, middleware pipeline, and caching for MCP servers",
+  "type": "library",
+  "license": "MIT",
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "tools",
+    "gateway",
+    "discovery",
+    "middleware"
+  ],
+  "authors": [
+    {
+      "name": "Code Wheel",
+      "email": "mowens3@gmail.com"
+    }
+  ],
+  "require": {
+    "php": ">=8.1",
+    "mcp/sdk": "^0.2"
+  },
+  "require-dev": {
+    "phpunit/phpunit": "^10.0 || ^11.0",
+    "phpstan/phpstan": "^1.10",
+    "psr/log": "^3.0",
+    "psr/simple-cache": "^3.0",
+    "psr/event-dispatcher": "^1.0"
+  },
+  "suggest": {
+    "psr/log": "Required for LoggingMiddleware",
+    "psr/simple-cache": "Required for CachingToolProvider",
+    "psr/event-dispatcher": "Required for EventMiddleware",
+    "code-wheel/mcp-schema-builder": "Recommended for ValidatingMiddleware"
+  },
+  "autoload": {
+    "psr-4": {
+      "CodeWheel\\McpToolGateway\\": "src/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "CodeWheel\\McpToolGateway\\Tests\\": "tests/"
+    }
+  },
+  "scripts": {
+    "test": "phpunit",
+    "analyse": "phpstan analyse src --level=8"
+  },
+  "minimum-stability": "stable",
+  "prefer-stable": true,
+  "support": {
+    "issues": "https://github.com/code-wheel/mcp-tool-gateway-php/issues",
+    "source": "https://github.com/code-wheel/mcp-tool-gateway-php/tree/master"
+  }
 }
