@@ -56,7 +56,9 @@ final class EventTest extends TestCase
         );
 
         $elapsed = $event->getElapsedMs();
-        $this->assertGreaterThanOrEqual(100, $elapsed);
+        // Floating-point clock granularity can land marginally under the
+        // nominal offset; allow 1ms of tolerance to keep this deterministic.
+        $this->assertGreaterThanOrEqual(99, $elapsed);
         $this->assertLessThan(200, $elapsed); // Should be around 100ms
     }
 
